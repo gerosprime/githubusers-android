@@ -1,0 +1,27 @@
+<resources>
+
+    <string name="app_name">Github Users</string>
+    <string name="title_item_detail">User Detail</string>
+
+    <string name="error_button_retry">Retry</string>
+
+    <string name="technical_error_message">An error has occurred. Please try again later.</string>
+
+    <string name="load_more_error">Cannot fetch more items due to an error. Please try again later.</string>
+    <string name="notes_label">Notes:</string>
+
+    <string name="following_format">Following: %d</string>
+    <string name="followers_format">Followers: %d</string>
+    <string name="name_format">Name: %s</string>
+    <string name="company_format">Company: %s</string>
+    <string name="blog_format">Blog: %s</string>
+    <string name="save">Save</string>
+
+    <string name="post_user_note_success">Note has been added to user.</string>
+    <string name="post_user_note_error">Can\'t save note to this user.</string>
+    <string name="post_user_note_progress">Saving note...</string>
+    <string name="search">Search</string>
+    <string name="search_hint">Type username or any term</string>
+    <string name="search_generic_error">Cannot perform a search due to an error.</string>
+
+</resources>
