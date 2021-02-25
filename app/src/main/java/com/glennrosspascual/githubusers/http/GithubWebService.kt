@@ -7,4 +7,5 @@ interface GithubWebService {
     fun loadUsers(offset : Int,
                   limit : Int) : Call<List<GithubUser>>
     fun loadUserDetail(login : String) : Call<GithubUser>
+
 }

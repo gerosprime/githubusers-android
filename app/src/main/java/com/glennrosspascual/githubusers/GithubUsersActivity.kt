@@ -1,15 +1,15 @@
 package com.glennrosspascual.githubusers
 
+import android.content.BroadcastReceiver
+import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import android.view.Menu
-import android.view.MenuItem
 import android.view.View
 import androidx.appcompat.app.AppCompatActivity
 import androidx.appcompat.widget.SearchView
 import androidx.appcompat.widget.Toolbar
 import androidx.core.widget.NestedScrollView
-import androidx.lifecycle.Observer
 import androidx.lifecycle.ViewModelProvider
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -36,6 +36,8 @@ class GithubUsersActivity : AppCompatActivity() {
     private lateinit var viewBindingContent : ContentGithubuserListBinding
     private lateinit var viewBindingError : ContentErrorBinding
     private lateinit var viewBindingLoading : ContentLoadingBinding
+
+    private lateinit var connectivityReceiver: BroadcastReceiver
 
     private val onClickListener = object : GithubUserItemClickListener {
         override fun onUserItemClicked(githubUser: GithubUser, index: Int)
@@ -128,11 +130,6 @@ class GithubUsersActivity : AppCompatActivity() {
     private fun attachSearchAdapter() : Boolean {
         with(viewBindingContent) {
             contentGithubListRecyclerview.adapter = searchAdapter
-        }
-
-        with(viewModel) {
-            itemsLiveData.removeObservers(this@GithubUsersActivity)
-            searchResultLiveData.observe(this@GithubUsersActivity, { searchUsersStateChanged(it) })
         }
 
         return true
@@ -231,8 +228,37 @@ class GithubUsersActivity : AppCompatActivity() {
 
     }
 
+    private fun pingConnectionStateChanged(result : Result<Boolean>) {
+
+        when(result) {
+            is Result.Loaded -> pingConnectionLoaded(result.data)
+            is Result.Loading -> {}
+            is Result.Success -> {}
+            is Result.Error -> {}
+        }
+
+    }
+
+    private fun pingConnectionLoaded(loaded: Boolean) {
+        if (loaded) {
+            Snackbar.make(viewBinding.activityItemListCoordinator,
+                R.string.connection_resumed_message, Snackbar.LENGTH_SHORT).show()
+            loadMoreIfScrollAtBottom(viewBindingContent.contentGithubListRecyclerview)
+        }
+    }
+
     private fun githubItemsLoadMoreError(error: Throwable) {
         showGithubItemsMoreLoading(false)
+
+        // Start listening and retry loading data when ping notifies connection
+        with(viewModel) {
+            connectionStatusLiveData.removeObservers(this@GithubUsersActivity)
+            connectionStatusLiveData.observe(this@GithubUsersActivity, {
+                pingConnectionStateChanged(it)
+            })
+            startConnectionListening()
+        }
+
         Snackbar.make(viewBinding.activityItemListCoordinator,
             R.string.load_more_error, Snackbar.LENGTH_SHORT).show()
     }
@@ -346,6 +372,16 @@ class GithubUsersActivity : AppCompatActivity() {
                 }
             }
         }
+
+        // Start listening and retry loading data when ping notifies connection
+        with(viewModel) {
+            connectionStatusLiveData.removeObservers(this@GithubUsersActivity)
+            connectionStatusLiveData.observe(this@GithubUsersActivity, {
+                pingConnectionStateChanged(it)
+            })
+            startConnectionListening()
+        }
+
 
         githubUsersLoading(false)
         showGithubItems(false)

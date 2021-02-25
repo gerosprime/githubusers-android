@@ -23,5 +23,6 @@
     <string name="search">Search</string>
     <string name="search_hint">Type username or any term</string>
     <string name="search_generic_error">Cannot perform a search due to an error.</string>
+    <string name="connection_resumed_message">Connection restored reloading items.</string>
 
 </resources>

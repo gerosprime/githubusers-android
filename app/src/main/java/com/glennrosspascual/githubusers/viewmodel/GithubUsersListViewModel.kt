@@ -3,6 +3,7 @@ package com.glennrosspascual.githubusers.viewmodel
 import androidx.lifecycle.LiveData
 import androidx.lifecycle.MutableLiveData
 import androidx.lifecycle.ViewModel
+import com.glennrosspascual.githubusers.interactors.GithubConnectionCheckUseCase
 import com.glennrosspascual.githubusers.interactors.GithubUsersLoadUseCase
 import com.glennrosspascual.githubusers.interactors.GithubUsersSearchUseCase
 import com.glennrosspascual.githubusers.model.GithubUser
@@ -14,7 +15,8 @@ import kotlin.math.ceil
 
 class GithubUsersListViewModel @Inject constructor(
     private val loadUseCase: GithubUsersLoadUseCase,
-    private val searchUseCase: GithubUsersSearchUseCase
+    private val searchUseCase: GithubUsersSearchUseCase,
+    private val connectionCheckUseCase: GithubConnectionCheckUseCase,
 ) : ViewModel() {
 
     val itemsLiveData : LiveData<Result<List<GithubUser>>>
@@ -25,10 +27,12 @@ class GithubUsersListViewModel @Inject constructor(
         get() = searchItemsMLD
     private val searchItemsMLD = MutableLiveData<Result<List<GithubUser>>>()
 
+    private val favoriteResultMLD = MutableLiveData<Result<PostNoteResult>>()
     val noteResultLiveData : LiveData<Result<PostNoteResult>>
         get() = favoriteResultMLD
 
-    private val favoriteResultMLD = MutableLiveData<Result<PostNoteResult>>()
+    private val connectionStatusMLD = MutableLiveData<Result<Boolean>>()
+    val connectionStatusLiveData get() = connectionStatusMLD
 
     private var _pageSize : Int = 10
     val pageSize : Int get() = _pageSize
@@ -45,6 +49,26 @@ class GithubUsersListViewModel @Inject constructor(
             it.result = this::searchResultsLoaded
             it.error = this::searchResultsLoadError
         }
+        connectionCheckUseCase.let {
+            it.result = this::githubConnectionLoaded
+            it.error = this::githubConnectionLoadError
+        }
+    }
+
+    private fun githubConnectionLoadError(error : Throwable) {
+        connectionStatusMLD.value = Result.Error(error)
+    }
+
+    private fun githubConnectionLoaded(connected : Boolean) {
+        connectionStatusMLD.value = Result.Loaded(connected)
+    }
+
+    fun startConnectionListening() {
+        connectionCheckUseCase.startConnectionListening()
+    }
+
+    fun stopConnectionListening() {
+        connectionCheckUseCase.stopConnectionListening()
     }
 
     private fun searchResultsLoadError(error : Throwable) {
@@ -91,6 +115,7 @@ class GithubUsersListViewModel @Inject constructor(
 
     override fun onCleared() {
         loadUseCase.stop()
+        connectionCheckUseCase.stopConnectionListening()
         super.onCleared()
     }
 

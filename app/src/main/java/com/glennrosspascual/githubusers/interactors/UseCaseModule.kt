@@ -1,5 +1,6 @@
 package com.glennrosspascual.githubusers.interactors
 
+import com.glennrosspascual.githubusers.model.GithubConnectionPinger
 import com.glennrosspascual.githubusers.model.repository.GithubUserRepository
 import dagger.Module
 import dagger.Provides
@@ -21,4 +22,13 @@ class UseCaseModule {
                               @Named("uiScheduler") uiScheduler: Scheduler? = null,
                               @Named("networkScheduler") networkScheduler: Scheduler? = null)
         = GithubUsersSearchUseCase(repository, uiScheduler, networkScheduler)
+
+    @Provides
+    @Singleton
+    fun provideConnectionUsecase(pinger: GithubConnectionPinger,
+                              @Named("uiScheduler") uiScheduler: Scheduler? = null,
+                              @Named("networkScheduler") networkScheduler: Scheduler? = null)
+            = GithubConnectionCheckUseCase(pinger, uiScheduler, networkScheduler)
+
+
 }
